@@ -1,0 +1,17 @@
+networks:
+  backend:
+    driver: bridge
+
+services:
+  repository_stats:
+    build:
+      context: .
+    entrypoint: python3 -m repository_stats --github-token=${GITHUB_TOKEN} --log-to-file --debug-mode
+    volumes:
+      - ./:/app
+    environment:
+      - REPOSITORY_NAME=${REPOSITORY_NAME}
+      - FEATURE_BRANCH=${FEATURE_BRANCH}
+      - PR_NUMBER=${PR_NUMBER}
+    networks:
+      backend:

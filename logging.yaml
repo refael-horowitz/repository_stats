@@ -1,0 +1,25 @@
+version: 1
+
+formatters:
+  simple:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: simple
+    stream: ext://sys.stdout
+  file:
+    class: logging.FileHandler
+    formatter: simple
+    filename: 'repository_stats_log.log'
+
+loggers:
+  repository_stats:
+    level: INFO
+    handlers: [console]
+    propagate: no
+
+root:
+  level: INFO
+  handlers: [console]
