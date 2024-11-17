@@ -61,33 +61,35 @@ class BranchTree:
     @property
     def feature_branch_nodes(self) -> List[Node]:
         """ Returns the unique nodes (from the unique commits) of the feature branch."""
-        return list(map(partial(_create_node, self.feature_branch), self.feature_branch_commits))
+        nodes = list(map(partial(_create_node, self.feature_branch), self.feature_branch_commits))
+        _LOGGER.debug(f'Feature branch nodes: {repr(nodes)}.')
+        return nodes
 
     @property
     def feature_branch_edges(self) -> List[Edge]:
         """ The nodes edges of the feature branch commit tree."""
-        _LOGGER.info(f'Creating the branch graph edges.')
-        nodes = self.feature_branch_nodes
-        edges = [Edge(n1, n2) for n1, n2 in zip(nodes, nodes[1:])]
-        _LOGGER.debug(f'Feature branch edges: {repr(edges)}.\nFeature branch nodes: {repr(nodes)}')
+        edges = [Edge(n1, n2) for n1, n2 in pairwise(self.feature_branch_nodes)]
+        _LOGGER.debug(f'Feature branch edges: {repr(edges)}.')
         return edges
 
     @property
     def main_branch_nodes(self) -> List[Node]:
         """ The nodes of the main branch commit tree. """
-        return list(map(partial(_create_node, self.main_branch), self.main_branch_commits))
+        nodes = list(map(partial(_create_node, self.main_branch), self.main_branch_commits))
+        _LOGGER.debug(f'Main branch nodes: {repr(nodes)}')
+        return nodes
 
     @property
     def main_branch_edges(self) -> List[Edge]:
         """ The edges of the main branch commit tree."""
-        nodes = self.main_branch_nodes
-        edges = [Edge(n1, n2) for n1, n2 in pairwise(nodes)]
-        _LOGGER.debug(f'Main branch edges: {repr(edges)}.\nMain branch nodes: {repr(nodes)}')
+        edges = [Edge(n1, n2) for n1, n2 in pairwise(self.main_branch_nodes)]
+        _LOGGER.debug(f'Main branch edges: {repr(edges)}.')
         return edges
 
     @property
     def branch_edges(self) -> List[Edge]:
         """ The edges of the feature and main branches commits tree."""
+        _LOGGER.info(f'Creating the branch graph edges.')
         feature_nodes = self.feature_branch_nodes
         main_nodes = self.main_branch_nodes
         all_edges = [
@@ -102,6 +104,7 @@ class BranchTree:
     @property
     def branch_nodes(self) -> List[Node]:
         """ The nodes of the feature and main branches commits tree. """
+        _LOGGER.info(f'Creating the branch graph nodes.')
         return self.feature_branch_nodes + self.main_branch_nodes
 
     def write_graph(self, output_file: Path) -> None:
@@ -112,7 +115,7 @@ class BranchTree:
         try:
             if output_file.suffix != DOT_SUFFIX:
                 output_file = output_file.with_suffix(DOT_SUFFIX)
-            _LOGGER.info(f'Writing branch graph to {output_file}')
+            _LOGGER.info(f'Writing branch graph to {output_file}.')
             self.build_graph().write(output_file)
         except Exception:
             _LOGGER.exception('Error while writing the branch graph.')
@@ -134,7 +137,7 @@ class BranchTree:
                     f'Pull request #{pull_request.number} for branch {pull_request.head.ref} is not merged yet.'
                 )
             if pull_request.head.ref != feature_branch:
-                _LOGGER.error(f'The branch {feature_branch} does not match pull request number {pr_num}')
+                raise ValueError(f'The branch {feature_branch} does not match pull request number {pr_num}.')
             diverge_commit = get_diverge_commit(repo, pull_request)
             merge_commit = get_merge_commit(repo, pull_request)
             main_branch_commits = get_in_between_commits(repo, diverge_commit, merge_commit)
