@@ -19,6 +19,7 @@ class RepositorySummary:
     :ivar List[str] releases: List of GitHub releases.
     :ivar int forks: Number of repository forks.
     :ivar int stars: Number of repository stars.
+    :ivar int num_open_pull_requests: Number of repository open pull requests.
     :ivar int num_contributors: Number of repository contributors.
     :ivar List[str] sorted_contributors: List of ordered repository contributors
         by number of all pull requests (closed and open).
@@ -27,6 +28,7 @@ class RepositorySummary:
     releases: List[str] = field(factory=list)
     forks: int | None = field(validator=instance_of(int), default=None)
     stars: int | None = field(validator=instance_of(int), default=None)
+    num_open_pull_requests: int | None = field(validator=instance_of(int), default=None)
     num_contributors: int | None = field(validator=instance_of(int), default=None)
     sorted_contributors: List[str] = field(factory=list)
 
@@ -36,6 +38,7 @@ class RepositorySummary:
             f"  releases={repr(self.releases)},\n"
             f"  forks={self.forks},\n"
             f"  stars={self.stars},\n"
+            f"  num_open_pull_requests={self.num_open_pull_requests},\n"
             f"  num_contributors={self.num_contributors},\n"
             f"  sorted_contributors={repr(self.sorted_contributors)}\n"
         )
@@ -56,6 +59,7 @@ def summarize_repository(repo: Repository, recent_releases: int = 3) -> Reposito
         releases=latest_releases(repo, recent_releases),
         forks=repo.forks_count,
         stars=repo.stargazers_count,
+        num_open_pull_requests=len([p for p in repo.get_pulls(state='open')]),
         num_contributors=len(contributors),
         sorted_contributors=sort_contributors_by_prs(repo, contributors)
     )
